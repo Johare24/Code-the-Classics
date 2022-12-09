@@ -975,11 +975,14 @@ def key_just_pressed(key):
 class Controls:
     def __init__(self, player_num):
         if player_num == 0:
+            self.gamepad = pygame.joystick.Joystick(0)
+            self.gamepad.init()
+            
             self.key_up = keys.UP
             self.key_down = keys.DOWN
             self.key_left = keys.LEFT
             self.key_right = keys.RIGHT
-            self.key_shoot = keys.SPACE
+            self.key_shoot = 1
         else:
             self.key_up = keys.W
             self.key_down = keys.S
@@ -990,18 +993,12 @@ class Controls:
     def move(self, speed):
         # Return vector representing amount of movement that should occur
         dx, dy = 0, 0
-        if keyboard[self.key_left]:
-            dx = -1
-        elif keyboard[self.key_right]:
-            dx = 1
-        if keyboard[self.key_up]:
-            dy = -1
-        elif keyboard[self.key_down]:
-            dy = 1
+        dx = self.gamepad.get_axis(0)
+        dy = self.gamepad.get_axis(1)
         return Vector2(dx, dy) * speed
 
     def shoot(self):
-        return key_just_pressed(self.key_shoot)
+        return self.gamepad.get_button(0)
 
 # Pygame Zero calls the update and draw functions each frame
 
@@ -1114,6 +1111,10 @@ except Exception:
 
 # Set the initial game state
 state = State.MENU
+
+# Initialise joystick module
+
+pygame.joystick.init()
 
 # Menu state
 menu_state = MenuState.NUM_PLAYERS
