@@ -972,20 +972,53 @@ def key_just_pressed(key):
 
     return result
 
-class Controls:
+class GamepadControls:
     def __init__(self, player_num):
         if player_num == 0:
+            self.gamepad = pygame.joystick.Joystick(0)
+            self.gamepad.init()
+            
             self.key_up = keys.UP
             self.key_down = keys.DOWN
             self.key_left = keys.LEFT
             self.key_right = keys.RIGHT
-            self.key_shoot = keys.SPACE
+            self.key_shoot = 0
         else:
+            self.gamepad = pygame.joystick.Joytick(1)
+            self.gamepad.init()
             self.key_up = keys.W
             self.key_down = keys.S
             self.key_left = keys.A
             self.key_right = keys.D
-            self.key_shoot = keys.LSHIFT
+            self.key_shoot = 0
+
+    def move(self, speed):
+        # Return vector representing amount of movement that should occur
+        dx, dy = 0, 0
+        in_x = self.gamepad.get_axis(0)
+        in_y = self.gamepad.get_axis(1)
+        if abs(in_x) > 0.13 or abs(in_y) > 0.13:
+            dx = self.gamepad.get_axis(0)
+            dy = self.gamepad.get_axis(1)
+        return Vector2(dx, dy) * speed
+
+    def shoot(self):
+        return self.gamepad.get_button(self.key_shoot)
+
+class Controls:
+    def __init__(self, player_num):
+        if player_num == 0:
+            self.key_up = keys.W
+            self.key_down = keys.S
+            self.key_left = keys.A
+            self.key_right = keys.D
+            self.key_shoot = keys.SPACE
+        else:
+            self.key_up = keys.UP
+            self.key_down = keys.DOWN
+            self.key_left = keys.LEFT
+            self.key_right = keys.RIGHT
+            self.key_shoot = keys.RSHIFT
 
     def move(self, speed):
         # Return vector representing amount of movement that should occur
@@ -1027,12 +1060,20 @@ def update():
                     # Start 2P game
                     state = State.PLAY
                     menu_state = None
-                    game = Game(Controls(0), Controls(1))
+                    if gamepads == 1:
+                        game = Game(GamepadControls(0), Controls(1))
+                    elif gamepads > 1:
+                        game = Game(GamepadControls(0), GamepadControls(1))
+                    else:
+                        game = Game(Controls(0), Controls(1))
             else:
                 # Start 1P game
                 state = State.PLAY
                 menu_state = None
-                game = Game(Controls(0), None, menu_difficulty)
+                if gamepads > 0:
+                    game = Game(GamepadControls(0), None, menu_difficulty)
+                else:
+                    game = Game(Controls(0), None, menu_difficulty)
         else:
             # Detect + act on up/down arrow keys
             selection_change = 0
@@ -1115,6 +1156,11 @@ except Exception:
 # Set the initial game state
 state = State.MENU
 
+# Initialise joystick module
+
+pygame.joystick.init()
+gamepads = pygame.joystick.get_count()
+print(gamepads)
 # Menu state
 menu_state = MenuState.NUM_PLAYERS
 menu_num_players = 1
