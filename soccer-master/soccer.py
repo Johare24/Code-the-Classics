@@ -982,23 +982,28 @@ class GamepadControls:
             self.key_down = keys.DOWN
             self.key_left = keys.LEFT
             self.key_right = keys.RIGHT
-            self.key_shoot = 1
+            self.key_shoot = 0
         else:
+            self.gamepad = pygame.joystick.Joytick(1)
+            self.gamepad.init()
             self.key_up = keys.W
             self.key_down = keys.S
             self.key_left = keys.A
             self.key_right = keys.D
-            self.key_shoot = keys.LSHIFT
+            self.key_shoot = 0
 
     def move(self, speed):
         # Return vector representing amount of movement that should occur
         dx, dy = 0, 0
-        dx = self.gamepad.get_axis(0)
-        dy = self.gamepad.get_axis(1)
+        in_x = self.gamepad.get_axis(0)
+        in_y = self.gamepad.get_axis(1)
+        if abs(in_x) > 0.13 or abs(in_y) > 0.13:
+            dx = self.gamepad.get_axis(0)
+            dy = self.gamepad.get_axis(1)
         return Vector2(dx, dy) * speed
 
     def shoot(self):
-        return self.gamepad.get_button(0)
+        return self.gamepad.get_button(self.key_shoot)
 
 class Controls:
     def __init__(self, player_num):
